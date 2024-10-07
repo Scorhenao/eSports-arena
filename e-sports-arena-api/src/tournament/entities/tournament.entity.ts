@@ -1,11 +1,20 @@
+import { TeamEntity } from 'src/common/entities/team.entity';
 import { CountryEntity } from 'src/common/entities/country.entity';
 import { ITournament } from 'src/common/interfaces/tournament.interface';
 import { ResultEntity } from 'src/results/entities/result.entity';
-import { Column, Entity, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
+import {
+    Column,
+    Entity,
+    ManyToOne,
+    OneToMany,
+    ManyToMany,
+    JoinTable,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('Tournaments')
 export class TournamentEntity implements Partial<ITournament> {
-    @PrimaryColumn()
+    @PrimaryGeneratedColumn()
     id: number;
 
     @Column({
@@ -22,4 +31,19 @@ export class TournamentEntity implements Partial<ITournament> {
     // Explanation: A tournament takes place in one country. This is a Many-to-One relationship where multiple tournaments can happen in the same country.
     @ManyToOne(() => CountryEntity, (country) => country.tournaments)
     country: CountryEntity;
+
+    // Explanation: A tournament can have multiple teams, and each team can participate in multiple tournaments.
+    @ManyToMany(() => TeamEntity, (team) => team.tournaments)
+    @JoinTable({
+        name: 'tournament_teams', // Name of the join table
+        joinColumn: {
+            name: 'tournamentId',
+            referencedColumnName: 'id',
+        },
+        inverseJoinColumn: {
+            name: 'teamId',
+            referencedColumnName: 'id',
+        },
+    })
+    teams: TeamEntity[];
 }

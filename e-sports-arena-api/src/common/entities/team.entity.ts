@@ -1,11 +1,19 @@
 import { PlayerEntity } from 'src/players/entities/player.entity';
-import { Column, Entity, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
+import {
+    Column,
+    Entity,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    ManyToMany,
+} from 'typeorm';
 import { Iteam } from '../interfaces/team.interface';
 import { CountryEntity } from './country.entity';
+import { TournamentEntity } from 'src/tournament/entities/tournament.entity'; // Import TournamentEntity
 
 @Entity('Teams')
 export class TeamEntity implements Partial<Iteam> {
-    @PrimaryColumn()
+    @PrimaryGeneratedColumn()
     id: number;
 
     @Column({
@@ -22,4 +30,8 @@ export class TeamEntity implements Partial<Iteam> {
     // Explanation: A team has many players, but each player belongs to one team.
     @OneToMany(() => PlayerEntity, (player) => player.team)
     players: PlayerEntity[];
+
+    // Explanation: A team can participate in multiple tournaments.
+    @ManyToMany(() => TournamentEntity, (tournament) => tournament.teams)
+    tournaments: TournamentEntity[];
 }
