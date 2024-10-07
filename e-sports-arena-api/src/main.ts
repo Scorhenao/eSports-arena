@@ -7,12 +7,12 @@ async function bootstrap() {
 
     // Swagger configuration
     const config = new DocumentBuilder()
-        .setTitle('Player Registration API')
+        .setTitle('eSprots API')
         .setDescription(
             'API documentation for player registration and management',
         )
         .setVersion('1.0')
-        .addTag('players') // You can add more tags as needed
+        .addBearerAuth()
         .build();
 
     const document = SwaggerModule.createDocument(app, config);
