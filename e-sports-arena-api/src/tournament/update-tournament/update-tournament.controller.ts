@@ -1,4 +1,4 @@
-import { UpdateTournamentDto } from './../dto/update-tournament/update-torunament.dto';
+import { UpdateTournamentDto } from '../dto/update-tournament/update-tournament.dto';
 import { Controller, Patch, Param, Body } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UpdateTournamentService } from './update-tournament.service';
