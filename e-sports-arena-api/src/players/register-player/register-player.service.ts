@@ -10,6 +10,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CountryEntity } from 'src/common/entities/country.entity';
 import { TeamEntity } from 'src/common/entities/team.entity';
+import { v4 as uuidv4 } from 'uuid'; // Import UUID v4 for generating unique IDs
+import * as bcrypt from 'bcrypt'; // Import bcrypt for password hashing
 
 @Injectable()
 export class RegisterPlayerService {
@@ -64,17 +66,21 @@ export class RegisterPlayerService {
             throw new ConflictException('Username or email already in use.');
         }
 
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         // Crear una nueva entidad PlayerEntity
         const player = this.playerRepository.create({
+            id: uuidv4(), // Set a unique ID
             userName,
             name,
             lastName,
             email,
             age,
             position,
-            country, // Se establece la relación con el país
-            team, // Se establece la relación con el equipo
-            password, // Asegúrate de encriptar la contraseña antes de guardarla
+            country,
+            team,
+            password: hashedPassword, // Use hashed password
         });
 
         // Guardar el jugador en la base de datos

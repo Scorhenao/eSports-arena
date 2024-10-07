@@ -1,11 +1,16 @@
 import { RegisterPlayerDto } from './../dto/register-player/register-player.dto';
 import { RegisterPlayerResponseDto } from './../dto/register-player/register-player-response.dto';
-import { Body, Controller, Post, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { RegisterPlayerService } from './register-player.service';
 
 @ApiTags('Players')
 @Controller('players')
 export class RegisterPlayerController {
+    constructor(
+        private readonly registerPlayerService: RegisterPlayerService,
+    ) {} // Inject the service
+
     @Post('register')
     @ApiResponse({
         status: 201,
@@ -15,12 +20,7 @@ export class RegisterPlayerController {
     async registerPlayer(
         @Body() registerPlayerDto: RegisterPlayerDto,
     ): Promise<RegisterPlayerResponseDto> {
-        // Here you would normally handle the registration logic (service call, saving to the DB, etc.)
-
-        return {
-            status: HttpStatus.CREATED,
-            message: 'Player registered successfully',
-            data: registerPlayerDto, // In a real scenario, you would return the saved player data
-        };
+        // Call the service to handle the registration logic
+        return this.registerPlayerService.registerPlayer(registerPlayerDto);
     }
 }
