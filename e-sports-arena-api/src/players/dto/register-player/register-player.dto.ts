@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsInt, IsUUID } from 'class-validator';
+import { IsString, IsEmail, IsInt } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterPlayerDto {
@@ -37,14 +37,14 @@ export class RegisterPlayerDto {
 
     @ApiProperty({
         description: 'ID of the country',
-        example: '2',
+        example: 2, // Cambiado a número
     })
-    @IsUUID()
+    @IsInt() // Cambiado a IsInt
     countryId: number;
 
     @ApiProperty({
         description: 'ID of the team',
-        example: '1',
+        example: 1,
     })
     @IsInt()
     teamId: number;
@@ -54,5 +54,5 @@ export class RegisterPlayerDto {
         example: 'securePassword123',
     })
     @IsString()
-    password: string; // Add password validation if needed
+    password: string; // Agregar validación de contraseña si es necesario
 }

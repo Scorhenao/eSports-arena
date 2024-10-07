@@ -33,5 +33,7 @@ export class TeamSeeder {
                 await this.teamRepository.save(team);
             }
         }
+
+        console.log('Teams seeded successfully!');
     }
 }
