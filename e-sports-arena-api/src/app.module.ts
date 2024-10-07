@@ -5,6 +5,7 @@ import { getDatabaseConfig } from './config/database.config';
 import { PlayersModule } from './players/players.module';
 import { TournamentModule } from './tournament/tournament.module';
 import { ResultsModule } from './results/results.module';
+import { AdminsModule } from './admins/admins.module';
 
 @Module({
     imports: [
@@ -19,6 +20,7 @@ import { ResultsModule } from './results/results.module';
         PlayersModule,
         TournamentModule,
         ResultsModule,
+        AdminsModule,
     ],
 })
 export class AppModule {}
