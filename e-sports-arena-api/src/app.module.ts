@@ -6,6 +6,7 @@ import { PlayersModule } from './players/players.module';
 import { TournamentModule } from './tournament/tournament.module';
 import { ResultsModule } from './results/results.module';
 import { AdminsModule } from './admins/admins.module';
+import { SeederModule } from './common/seed/seeder.module';
 
 @Module({
     imports: [
@@ -21,6 +22,7 @@ import { AdminsModule } from './admins/admins.module';
         TournamentModule,
         ResultsModule,
         AdminsModule,
+        SeederModule,
     ],
 })
 export class AppModule {}
