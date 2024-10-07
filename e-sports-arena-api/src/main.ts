@@ -3,6 +3,9 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { CountrySeeder } from './common/seed/country.seeder';
 import { TeamSeeder } from './common/seed/team.seeder';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
