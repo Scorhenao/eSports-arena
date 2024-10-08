@@ -110,11 +110,11 @@ export class CompetitionsService {
         competitionId: number,
         winnerId: number,
         loserId: number,
+        isDraw: boolean = false, // Nuevo parámetro para empate
     ) {
-        // Buscar la competencia
         const competition = await this.competitionRepository.findOne({
             where: { id: competitionId },
-            relations: ['results'], // Asegúrate de cargar los resultados
+            relations: ['results'],
         });
 
         if (!competition) {
@@ -123,7 +123,6 @@ export class CompetitionsService {
             );
         }
 
-        // Buscar el equipo ganador y perdedor
         const winner = await this.teamRepository.findOne({
             where: { id: winnerId },
         });
@@ -135,15 +134,63 @@ export class CompetitionsService {
             throw new NotFoundException('Winner or Loser team not found.');
         }
 
-        // Crear un resultado de la competencia
         const competitionResult = new CompetitionResultEntity();
         competitionResult.competition = competition;
         competitionResult.winner = winner;
         competitionResult.loser = loser;
+        competitionResult.isDraw = isDraw; // Indicar si fue empate
 
-        // Guardar el resultado de la competencia
         await this.competitionResultRepository.save(competitionResult);
 
         return { message: 'Match result defined successfully.' };
+    }
+
+    async getWinners(): Promise<any> {
+        const results = await this.competitionResultRepository.find({
+            relations: ['competition', 'winner', 'loser'], // Cargar todas las relaciones necesarias
+        });
+
+        if (!results.length) {
+            throw new NotFoundException('No competition results found.');
+        }
+
+        return results.map((result) => {
+            const { competition, winner, loser, isDraw } = result;
+
+            // Verificar si el resultado, competencia y equipos están definidos
+            if (!competition || (!winner && !loser)) {
+                return {
+                    competitionId: 'N/A',
+                    competitionName: 'N/A',
+                    result: 'No valid result available',
+                };
+            }
+
+            // Si hay un empate
+            if (isDraw) {
+                return {
+                    competitionId: competition?.id || 'N/A',
+                    competitionName: competition?.tournament?.name || 'N/A',
+                    result: 'Draw',
+                    teams: [
+                        {
+                            id: winner?.id || 'N/A',
+                            name: winner?.name || 'N/A',
+                        },
+                        { id: loser?.id || 'N/A', name: loser?.name || 'N/A' },
+                    ],
+                };
+            }
+
+            // Caso normal donde hay un ganador
+            return {
+                competitionId: competition?.id || 'N/A',
+                competitionName: competition?.tournament?.name || 'N/A',
+                winner: {
+                    id: winner?.id || 'N/A',
+                    name: winner?.name || 'N/A',
+                },
+            };
+        });
     }
 }

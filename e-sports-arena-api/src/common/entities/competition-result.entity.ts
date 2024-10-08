@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Column } from 'typeorm';
 import { TeamEntity } from 'src/common/entities/team.entity';
 import { CompetitionEntity } from 'src/competitions/entities/competition.entity';
 
@@ -15,4 +15,7 @@ export class CompetitionResultEntity {
 
     @ManyToOne(() => TeamEntity)
     loser: TeamEntity;
+
+    @Column({ default: false })
+    isDraw: boolean;
 }

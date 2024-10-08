@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get } from '@nestjs/common';
 import { CompetitionsService } from './competitions.service';
 import { CreateCompetitionDto } from './dto/create-competition.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -51,5 +51,15 @@ export class CompetitionsController {
             body.winnerId,
             body.loserId,
         );
+    }
+
+    // Nuevo endpoint para obtener todos los ganadores
+    @Get('winners')
+    @ApiResponse({
+        status: 200,
+        description: 'List of all competition winners.',
+    })
+    async getWinners() {
+        return await this.competitionsService.getWinners();
     }
 }
