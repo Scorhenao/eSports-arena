@@ -10,6 +10,7 @@ import {
 import { Iteam } from '../interfaces/team.interface';
 import { CountryEntity } from './country.entity';
 import { TournamentEntity } from 'src/tournament/entities/tournament.entity'; // Import TournamentEntity
+import { ResultEntity } from 'src/results/entities/result.entity';
 
 @Entity('Teams')
 export class TeamEntity implements Partial<Iteam> {
@@ -34,4 +35,7 @@ export class TeamEntity implements Partial<Iteam> {
     // Explanation: A team can participate in multiple tournaments.
     @ManyToMany(() => TournamentEntity, (tournament) => tournament.teams)
     tournaments: TournamentEntity[];
+
+    @OneToMany(() => ResultEntity, (result) => result.team)
+    results: ResultEntity[]; // Relación con los resultados
 }

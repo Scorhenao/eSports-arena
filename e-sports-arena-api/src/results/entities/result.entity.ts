@@ -1,10 +1,13 @@
-import { Iresult } from 'src/common/interfaces/result.interface';
+import { CompetitionEntity } from 'src/competitions/entities/competition.entity';
 import { PlayerEntity } from 'src/players/entities/player.entity';
 import { TournamentEntity } from 'src/tournament/entities/tournament.entity';
-import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { TeamEntity } from 'src/common/entities/team.entity';
+import { Iresult } from 'src/common/interfaces/result.interface';
+
 @Entity('Results')
 export class ResultEntity implements Partial<Iresult> {
-    @PrimaryColumn('uuid')
+    @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column({
@@ -17,31 +20,24 @@ export class ResultEntity implements Partial<Iresult> {
         type: 'int',
         nullable: false,
     })
-    teamId: number;
+    points: number;
 
-    @Column({
-        type: 'int',
-        nullable: false,
-    })
-    tournamentId: number;
-
-    @Column({
-        type: 'int',
-        nullable: false,
-    })
-    countryId: number;
-
-    @Column({
-        type: 'varchar',
-        nullable: false,
-    })
-    playerId: string;
-
-    //Explanation: Each result belongs to a specific tournament. A tournament can have many results (one result per match).
     @ManyToOne(() => TournamentEntity, (tournament) => tournament.results)
     tournament: TournamentEntity;
 
-    // Explanation: Each result belongs to a specific player. A player has many results, but a result belongs to only one player.
     @ManyToOne(() => PlayerEntity, (player) => player.results)
     player: PlayerEntity;
+
+    @ManyToOne(() => CompetitionEntity, (competition) => competition.results)
+    competition: CompetitionEntity;
+
+    @ManyToOne(() => TeamEntity, { nullable: true })
+    winner: TeamEntity;
+
+    @ManyToOne(() => TeamEntity, { nullable: true })
+    loser: TeamEntity;
+
+    // Añade esta relación
+    @ManyToOne(() => TeamEntity, (team) => team.results)
+    team: TeamEntity; // Esta propiedad debe existir
 }

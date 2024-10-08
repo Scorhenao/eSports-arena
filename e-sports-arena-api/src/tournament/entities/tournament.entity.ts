@@ -11,6 +11,7 @@ import {
     JoinTable,
     PrimaryGeneratedColumn,
 } from 'typeorm';
+import { CompetitionEntity } from 'src/competitions/entities/competition.entity';
 
 @Entity('Tournaments')
 export class TournamentEntity implements Partial<ITournament> {
@@ -46,4 +47,7 @@ export class TournamentEntity implements Partial<ITournament> {
         },
     })
     teams: TeamEntity[];
+
+    @OneToMany(() => CompetitionEntity, (competition) => competition.tournament)
+    competitions: CompetitionEntity[];
 }
