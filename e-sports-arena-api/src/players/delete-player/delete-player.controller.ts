@@ -1,13 +1,20 @@
 import { DeletePlayerService } from './delete-player.service';
-import { Controller, Delete, Param } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Delete, Param, UseGuards } from '@nestjs/common';
+import { ApiHeader, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { DeletePlayerResponseDto } from './../dto/delete-player/delete-player-response.dto';
+import { ApiKeyGuard } from 'src/common/auth/guards/api-key.guard';
 
 @ApiTags('Players')
 @Controller('players')
 export class DeletePlayerController {
     constructor(private readonly deletePlayerService: DeletePlayerService) {}
 
+    @UseGuards(ApiKeyGuard)
+    @ApiHeader({
+        name: 'x-api-key',
+        description: 'API Key',
+        required: true,
+    })
     @Delete(':id')
     @ApiResponse({
         status: 200,

@@ -3,8 +3,14 @@ import { AdminGuard } from './../../common/auth/guards/admin.guard'; // Import t
 import { CreateTournamentDto } from './../dto/create-tournament/create-tournament.dto';
 import { CreateTournamentResponseDto } from './../dto/create-tournament/create-tournament-response.dto';
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
-import { ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import {
+    ApiResponse,
+    ApiTags,
+    ApiBearerAuth,
+    ApiHeader,
+} from '@nestjs/swagger';
 import { CreateTournamentService } from './create-tournament.service';
+import { ApiKeyGuard } from 'src/common/auth/guards/api-key.guard';
 
 @ApiTags('Tournaments')
 @ApiBearerAuth() // Indicate that this endpoint requires a bearer token
@@ -14,6 +20,12 @@ export class CreateTournamentController {
         private readonly createTournamentService: CreateTournamentService,
     ) {}
 
+    @UseGuards(ApiKeyGuard)
+    @ApiHeader({
+        name: 'x-api-key',
+        description: 'API Key',
+        required: true,
+    })
     @Post('create')
     @UseGuards(JwtAuthGuard, AdminGuard) // Apply both guards here
     @ApiResponse({

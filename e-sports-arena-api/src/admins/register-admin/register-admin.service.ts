@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RegisterAdminDto } from './../dto/register-admin/register-admin.dto';
@@ -19,27 +19,38 @@ export class RegisterAdminService {
         const { name, email, password } = registerAdminDto;
 
         // Hash the password
-        const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create a new Admin entity
         const newAdmin = this.adminRepository.create({
             name,
             email,
-            password: hashedPassword, // Store the hashed password
+            password: hashedPassword,
         });
 
-        // Save the admin to the database
-        await this.adminRepository.save(newAdmin);
+        try {
+            // Save the admin to the database
+            await this.adminRepository.save(newAdmin);
 
-        // Prepare the response DTO
-        return {
-            status: 201,
-            data: {
-                id: newAdmin.id,
-                name: newAdmin.name,
-                email: newAdmin.email,
-            },
-            message: 'Admin registered successfully.',
-        };
+            // Prepare the response DTO
+            return {
+                status: 201,
+                data: {
+                    id: newAdmin.id,
+                    name: newAdmin.name,
+                    email: newAdmin.email,
+                },
+                message: 'Admin registered successfully.',
+            };
+        } catch (error) {
+            if (error.code === '23505') {
+                // Duplicate key error
+                throw new ConflictException(
+                    'Admin with this name or email already exists.',
+                );
+            }
+            // Throw the original error if it's not a duplicate key error
+            throw error;
+        }
     }
 }

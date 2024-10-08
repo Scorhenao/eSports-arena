@@ -13,6 +13,7 @@ import { CompetitionsModule } from './competitions/competitions.module';
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
+            envFilePath: '.env',
         }),
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],

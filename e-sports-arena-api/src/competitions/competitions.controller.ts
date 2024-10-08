@@ -1,15 +1,22 @@
-import { Controller, Post, Body, Param, Get } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, UseGuards } from '@nestjs/common';
 import { CompetitionsService } from './competitions.service';
 import { CreateCompetitionDto } from './dto/create-competition.dto';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiHeader, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CompetitionEntity } from './entities/competition.entity';
 import { AddPointsDto } from './dto/add-points.dto';
+import { ApiKeyGuard } from 'src/common/auth/guards/api-key.guard';
 
 @ApiTags('competitions')
 @Controller('competitions')
 export class CompetitionsController {
     constructor(private readonly competitionsService: CompetitionsService) {}
 
+    @UseGuards(ApiKeyGuard)
+    @ApiHeader({
+        name: 'x-api-key',
+        description: 'API Key',
+        required: true,
+    })
     @Post()
     @ApiResponse({
         status: 201,
@@ -22,6 +29,12 @@ export class CompetitionsController {
         return this.competitionsService.createCompetition(createCompetitionDto);
     }
 
+    @UseGuards(ApiKeyGuard)
+    @ApiHeader({
+        name: 'x-api-key',
+        description: 'API Key',
+        required: true,
+    })
     @Post(':competitionId/points')
     @ApiResponse({
         status: 200,
@@ -37,6 +50,12 @@ export class CompetitionsController {
         );
     }
 
+    @UseGuards(ApiKeyGuard)
+    @ApiHeader({
+        name: 'x-api-key',
+        description: 'API Key',
+        required: true,
+    })
     @Post(':competitionId/result')
     @ApiResponse({
         status: 200,
@@ -53,6 +72,12 @@ export class CompetitionsController {
         );
     }
 
+    @UseGuards(ApiKeyGuard)
+    @ApiHeader({
+        name: 'x-api-key',
+        description: 'API Key',
+        required: true,
+    })
     // Nuevo endpoint para obtener todos los ganadores
     @Get('winners')
     @ApiResponse({

@@ -1,14 +1,21 @@
 import { UpdatePlayerService } from './update-player.service';
-import { Controller, Put, Body, Param } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Put, Body, Param, UseGuards } from '@nestjs/common';
+import { ApiHeader, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UpdatePlayerDto } from './../dto/update-player/update-player.dto';
 import { UpdatePlayerResponseDto } from './../dto/update-player/update-player-response.dto';
+import { ApiKeyGuard } from 'src/common/auth/guards/api-key.guard';
 
 @ApiTags('Players')
 @Controller('players')
 export class UpdatePlayerController {
     constructor(private readonly updatePlayerService: UpdatePlayerService) {}
 
+    @UseGuards(ApiKeyGuard)
+    @ApiHeader({
+        name: 'x-api-key',
+        description: 'API Key',
+        required: true,
+    })
     @Put(':id')
     @ApiResponse({
         status: 200,

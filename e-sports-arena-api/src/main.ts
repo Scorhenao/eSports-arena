@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { CountrySeeder } from './common/seed/country.seeder';
 import { TeamSeeder } from './common/seed/team.seeder';
 import * as dotenv from 'dotenv';
+import { AllExceptionsFilter } from './common/filters/exeptionFilter';
 
 dotenv.config();
 
@@ -29,6 +30,8 @@ async function bootstrap() {
 
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document); // This will be accessible at /api
+
+    app.useGlobalFilters(new AllExceptionsFilter());
 
     await app.listen(3000);
 }

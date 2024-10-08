@@ -1,9 +1,10 @@
 import { Controller, Delete, Param, UseGuards } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiHeader, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { DeleteTournamentService } from './delete-tournament.service';
 import { DeleteTournamentResponseDto } from './../dto/delete-tournament/delete-tournament-response.dto';
 import { JwtAuthGuard } from './../../common/auth/guards/jwt-auth.guard';
 import { AdminGuard } from './../../common/auth/guards/admin.guard'; // Import the AdminGuard
+import { ApiKeyGuard } from 'src/common/auth/guards/api-key.guard';
 
 @ApiTags('Tournaments')
 @Controller('tournaments')
@@ -12,6 +13,12 @@ export class DeleteTournamentController {
         private readonly deleteTournamentService: DeleteTournamentService,
     ) {}
 
+    @UseGuards(ApiKeyGuard)
+    @ApiHeader({
+        name: 'x-api-key',
+        description: 'API Key',
+        required: true,
+    })
     @Delete(':id')
     @UseGuards(JwtAuthGuard, AdminGuard) // Apply both guards to restrict access
     @ApiResponse({
