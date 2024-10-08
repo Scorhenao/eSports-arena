@@ -4,7 +4,6 @@ import { TournamentEntity } from 'src/tournament/entities/tournament.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { TeamEntity } from 'src/common/entities/team.entity';
 import { Iresult } from 'src/common/interfaces/result.interface';
-
 @Entity('Results')
 export class ResultEntity implements Partial<Iresult> {
     @PrimaryGeneratedColumn('uuid')
@@ -31,13 +30,7 @@ export class ResultEntity implements Partial<Iresult> {
     @ManyToOne(() => CompetitionEntity, (competition) => competition.results)
     competition: CompetitionEntity;
 
-    @ManyToOne(() => TeamEntity, { nullable: true })
-    winner: TeamEntity;
-
-    @ManyToOne(() => TeamEntity, { nullable: true })
-    loser: TeamEntity;
-
     // Añade esta relación
     @ManyToOne(() => TeamEntity, (team) => team.results)
-    team: TeamEntity; // Esta propiedad debe existir
+    team: TeamEntity;
 }

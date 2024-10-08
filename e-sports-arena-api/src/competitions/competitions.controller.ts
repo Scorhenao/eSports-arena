@@ -36,4 +36,20 @@ export class CompetitionsController {
             addPointsDto,
         );
     }
+
+    @Post(':competitionId/result')
+    @ApiResponse({
+        status: 200,
+        description: 'Match result defined successfully.',
+    })
+    async defineMatchResult(
+        @Param('competitionId') competitionId: number,
+        @Body() body: { winnerId: number; loserId: number },
+    ) {
+        return await this.competitionsService.defineMatchResult(
+            competitionId,
+            body.winnerId,
+            body.loserId,
+        );
+    }
 }

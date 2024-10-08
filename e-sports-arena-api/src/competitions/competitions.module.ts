@@ -6,6 +6,7 @@ import { CompetitionEntity } from './entities/competition.entity';
 import { TournamentEntity } from 'src/tournament/entities/tournament.entity';
 import { TeamEntity } from 'src/common/entities/team.entity';
 import { ResultEntity } from 'src/results/entities/result.entity'; // Si necesitas los resultados también
+import { CompetitionResultEntity } from 'src/common/entities/competition-result.entity';
 
 @Module({
     imports: [
@@ -13,11 +14,12 @@ import { ResultEntity } from 'src/results/entities/result.entity'; // Si necesit
             CompetitionEntity,
             TournamentEntity,
             TeamEntity,
-            ResultEntity, // Incluido solo si es necesario para otras operaciones
+            ResultEntity,
+            CompetitionResultEntity,
         ]),
     ],
     controllers: [CompetitionsController],
     providers: [CompetitionsService],
-    exports: [CompetitionsService], // Exportar el servicio si se necesita en otros módulos
+    exports: [CompetitionsService],
 })
 export class CompetitionsModule {}

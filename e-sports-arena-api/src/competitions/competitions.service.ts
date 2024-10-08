@@ -7,6 +7,7 @@ import { TeamEntity } from 'src/common/entities/team.entity';
 import { CreateCompetitionDto } from './dto/create-competition.dto';
 import { ResultEntity } from 'src/results/entities/result.entity';
 import { AddPointsDto } from './dto/add-points.dto';
+import { CompetitionResultEntity } from 'src/common/entities/competition-result.entity';
 
 @Injectable()
 export class CompetitionsService {
@@ -18,7 +19,9 @@ export class CompetitionsService {
         @InjectRepository(TeamEntity)
         private readonly teamRepository: Repository<TeamEntity>,
         @InjectRepository(ResultEntity)
-        private readonly resultRepository: Repository<ResultEntity>, // Asegúrate de inyectar el repositorio de ResultEntity
+        private readonly resultRepository: Repository<ResultEntity>,
+        @InjectRepository(CompetitionResultEntity)
+        private readonly competitionResultRepository: Repository<CompetitionResultEntity>,
     ) {}
 
     async createCompetition(
@@ -101,5 +104,46 @@ export class CompetitionsService {
         }
 
         return { message: 'Points added successfully.' };
+    }
+
+    async defineMatchResult(
+        competitionId: number,
+        winnerId: number,
+        loserId: number,
+    ) {
+        // Buscar la competencia
+        const competition = await this.competitionRepository.findOne({
+            where: { id: competitionId },
+            relations: ['results'], // Asegúrate de cargar los resultados
+        });
+
+        if (!competition) {
+            throw new NotFoundException(
+                `Competition with ID ${competitionId} not found.`,
+            );
+        }
+
+        // Buscar el equipo ganador y perdedor
+        const winner = await this.teamRepository.findOne({
+            where: { id: winnerId },
+        });
+        const loser = await this.teamRepository.findOne({
+            where: { id: loserId },
+        });
+
+        if (!winner || !loser) {
+            throw new NotFoundException('Winner or Loser team not found.');
+        }
+
+        // Crear un resultado de la competencia
+        const competitionResult = new CompetitionResultEntity();
+        competitionResult.competition = competition;
+        competitionResult.winner = winner;
+        competitionResult.loser = loser;
+
+        // Guardar el resultado de la competencia
+        await this.competitionResultRepository.save(competitionResult);
+
+        return { message: 'Match result defined successfully.' };
     }
 }

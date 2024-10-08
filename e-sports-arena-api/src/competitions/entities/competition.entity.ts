@@ -12,4 +12,10 @@ export class CompetitionEntity {
 
     @OneToMany(() => ResultEntity, (result) => result.competition)
     results: ResultEntity[];
+
+    @OneToMany(
+        () => CompetitionEntity,
+        (competition) => competition.competition,
+    )
+    competition: CompetitionEntity;
 }
