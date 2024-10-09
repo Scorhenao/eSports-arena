@@ -12,6 +12,8 @@ import { UpdatePlayerService } from './update-players/update-player.service';
 import { UpdatePlayerController } from './update-players/update-player.controller';
 import { DeletePlayerService } from './delete-player/delete-player.service';
 import { DeletePlayerController } from './delete-player/delete-player.controller';
+import { PaginationPlayersController } from './player-pagination/player-pagination.controller';
+import { PaginationPlayersService } from './player-pagination/player-pagination.service';
 
 @Module({
     imports: [
@@ -26,12 +28,14 @@ import { DeletePlayerController } from './delete-player/delete-player.controller
         LoginPlayerController,
         UpdatePlayerController,
         DeletePlayerController,
+        PaginationPlayersController,
     ],
     providers: [
         RegisterPlayerService,
         LoginPlayerService,
         UpdatePlayerService,
         DeletePlayerService,
+        PaginationPlayersService,
     ],
 })
 export class PlayersModule {}
