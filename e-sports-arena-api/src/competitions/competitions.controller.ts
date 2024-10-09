@@ -63,12 +63,11 @@ export class CompetitionsController {
     })
     async defineMatchResult(
         @Param('competitionId') competitionId: number,
-        @Body() body: { winnerId: number; loserId: number },
+        @Body() body: { isDraw?: boolean }, // Opcional, según la lógica
     ) {
         return await this.competitionsService.defineMatchResult(
             competitionId,
-            body.winnerId,
-            body.loserId,
+            body.isDraw, // Pasar solo lo que necesites
         );
     }
 
@@ -86,5 +85,21 @@ export class CompetitionsController {
     })
     async getWinners() {
         return await this.competitionsService.getWinners();
+    }
+
+    @UseGuards(ApiKeyGuard)
+    @ApiHeader({
+        name: 'x-api-key',
+        description: 'API Key',
+        required: true,
+    })
+    @Get('losers')
+    @ApiResponse({
+        status: 200,
+        description: 'Competition found successfully.',
+        type: CompetitionEntity,
+    })
+    async getCompetition() {
+        return await this.competitionsService.getLosers();
     }
 }

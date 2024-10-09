@@ -106,24 +106,7 @@ export class CompetitionsService {
         return { message: 'Points added successfully.' };
     }
 
-    async defineMatchResult(
-        competitionId: number,
-        winnerId: number,
-        loserId: number,
-        isDraw: boolean = false,
-    ) {
-        const existingResult = await this.competitionResultRepository.findOne({
-            where: {
-                competition: { id: competitionId },
-                winner: { id: winnerId },
-                loser: { id: loserId },
-            },
-        });
-
-        if (existingResult) {
-            throw new BadRequestException('This match result already exists.');
-        }
-
+    async defineMatchResult(competitionId: number, isDraw: boolean = false) {
         const competition = await this.competitionRepository.findOne({
             where: { id: competitionId },
             relations: ['results'],
@@ -135,19 +118,45 @@ export class CompetitionsService {
             );
         }
 
-        const [winner, loser] = await Promise.all([
-            this.teamRepository.findOne({ where: { id: winnerId } }),
-            this.teamRepository.findOne({ where: { id: loserId } }),
-        ]);
+        // Obtener todos los resultados de la competición
+        const results = await this.resultRepository.find({
+            where: { competition: { id: competitionId } },
+            relations: ['team'],
+        });
 
-        if (!winner || !loser) {
-            throw new NotFoundException('Winner or Loser team not found.');
+        if (results.length === 0) {
+            throw new NotFoundException(
+                'No results found for this competition.',
+            );
         }
 
+        // Determinar el ganador y el perdedor basándose en los puntos
+        let winner = null;
+        let loser = null;
+
+        if (!isDraw) {
+            // Filtrar los resultados para obtener el equipo con más puntos
+            winner = results.reduce((prev, current) => {
+                return prev.points > current.points ? prev : current;
+            });
+
+            // Filtrar el perdedor
+            loser = results.reduce((prev, current) => {
+                return prev.points < current.points ? prev : current;
+            });
+
+            if (winner.id === loser.id) {
+                throw new BadRequestException(
+                    'Winner and loser cannot be the same team.',
+                );
+            }
+        }
+
+        // Guardar el resultado de la competición
         const competitionResult = new CompetitionResultEntity();
         competitionResult.competition = competition;
-        competitionResult.winner = winner;
-        competitionResult.loser = loser;
+        competitionResult.winner = winner?.team; // Guardar el equipo ganador
+        competitionResult.loser = loser?.team; // Guardar el equipo perdedor
         competitionResult.isDraw = isDraw;
 
         await this.competitionResultRepository.save(competitionResult);
@@ -196,6 +205,37 @@ export class CompetitionsService {
                 winner: {
                     id: winner?.id || 'N/A',
                     name: winner?.name || 'N/A',
+                },
+            };
+        });
+    }
+
+    async getLosers(): Promise<any> {
+        const results = await this.competitionResultRepository.find({
+            relations: ['competition', 'winner', 'loser'],
+        });
+
+        if (!results.length) {
+            throw new NotFoundException('No competition results found.');
+        }
+
+        return results.map((result) => {
+            const { competition, loser } = result;
+
+            if (!competition || !loser) {
+                return {
+                    competitionId: 'N/A',
+                    competitionName: 'N/A',
+                    loser: 'No valid loser available',
+                };
+            }
+
+            return {
+                competitionId: competition.id || 'N/A',
+                competitionName: competition?.tournament?.name || 'N/A',
+                loser: {
+                    id: loser?.id || 'N/A',
+                    name: loser?.name || 'N/A',
                 },
             };
         });
