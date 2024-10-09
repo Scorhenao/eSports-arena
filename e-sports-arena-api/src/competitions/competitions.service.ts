@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+    Injectable,
+    NotFoundException,
+    BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CompetitionEntity } from './entities/competition.entity';
@@ -29,52 +33,48 @@ export class CompetitionsService {
     ): Promise<CompetitionEntity> {
         const { tournamentId, numberOfTeams } = createCompetitionDto;
 
-        // Buscar el torneo
         const tournament = await this.tournamentRepository.findOne({
             where: { id: tournamentId },
-            relations: ['teams'], // Cargar los equipos del torneo
+            relations: ['teams'],
         });
 
         if (!tournament) {
             throw new NotFoundException(
-                `Tournament with ID ${tournamentId} not found`,
+                `Tournament with ID ${tournamentId} not found.`,
             );
         }
 
-        // Verificar que hay suficientes equipos
         if (tournament.teams.length < numberOfTeams) {
-            throw new Error(
+            throw new BadRequestException(
                 'Not enough teams in the tournament to create this competition',
             );
         }
 
-        // Crear una nueva competencia
         const competition = new CompetitionEntity();
         competition.tournament = tournament;
 
-        // Guardar la competencia
         const savedCompetition =
             await this.competitionRepository.save(competition);
 
-        // Crear resultados para cada equipo
-        for (const team of tournament.teams.slice(0, numberOfTeams)) {
+        // Crear resultados para los equipos, ejecutando promesas en paralelo
+        const results = tournament.teams.slice(0, numberOfTeams).map((team) => {
             const result = new ResultEntity();
-            result.competition = savedCompetition; // Asignar la competencia
-            result.team = team; // Asignar el equipo
-            result.points = 0; // Inicializar puntos
-            result.name = `${team.name} Result`; // Asignar un valor al campo name
+            result.competition = savedCompetition;
+            result.team = team;
+            result.points = 0;
+            result.name = `${team.name} Result`;
+            return this.resultRepository.save(result);
+        });
 
-            // Guardar el resultado
-            await this.resultRepository.save(result);
-        }
+        await Promise.all(results); // Guardar todos los resultados en paralelo
 
-        return savedCompetition; // Devuelve la competencia creada
+        return savedCompetition;
     }
 
     async addPoints(competitionId: number, addPointsDto: AddPointsDto) {
         const competition = await this.competitionRepository.findOne({
             where: { id: competitionId },
-            relations: ['tournament'], // Asegúrate de cargar el torneo asociado
+            relations: ['tournament'],
         });
 
         if (!competition) {
@@ -83,7 +83,7 @@ export class CompetitionsService {
             );
         }
 
-        for (const teamPoint of addPointsDto.teamPoints) {
+        const promises = addPointsDto.teamPoints.map(async (teamPoint) => {
             const result = await this.resultRepository.findOne({
                 where: {
                     competition: { id: competitionId },
@@ -91,17 +91,17 @@ export class CompetitionsService {
                 },
             });
 
-            console.log(`Searching for result for team ID ${teamPoint.teamId}`); // Agregar log
-
-            if (result) {
-                result.points += teamPoint.points;
-                await this.resultRepository.save(result);
-            } else {
+            if (!result) {
                 throw new NotFoundException(
                     `Result not found for team ID ${teamPoint.teamId}.`,
                 );
             }
-        }
+
+            result.points += teamPoint.points;
+            return this.resultRepository.save(result);
+        });
+
+        await Promise.all(promises); // Procesar todas las actualizaciones en paralelo
 
         return { message: 'Points added successfully.' };
     }
@@ -110,8 +110,20 @@ export class CompetitionsService {
         competitionId: number,
         winnerId: number,
         loserId: number,
-        isDraw: boolean = false, // Nuevo parámetro para empate
+        isDraw: boolean = false,
     ) {
+        const existingResult = await this.competitionResultRepository.findOne({
+            where: {
+                competition: { id: competitionId },
+                winner: { id: winnerId },
+                loser: { id: loserId },
+            },
+        });
+
+        if (existingResult) {
+            throw new BadRequestException('This match result already exists.');
+        }
+
         const competition = await this.competitionRepository.findOne({
             where: { id: competitionId },
             relations: ['results'],
@@ -123,12 +135,10 @@ export class CompetitionsService {
             );
         }
 
-        const winner = await this.teamRepository.findOne({
-            where: { id: winnerId },
-        });
-        const loser = await this.teamRepository.findOne({
-            where: { id: loserId },
-        });
+        const [winner, loser] = await Promise.all([
+            this.teamRepository.findOne({ where: { id: winnerId } }),
+            this.teamRepository.findOne({ where: { id: loserId } }),
+        ]);
 
         if (!winner || !loser) {
             throw new NotFoundException('Winner or Loser team not found.');
@@ -138,7 +148,7 @@ export class CompetitionsService {
         competitionResult.competition = competition;
         competitionResult.winner = winner;
         competitionResult.loser = loser;
-        competitionResult.isDraw = isDraw; // Indicar si fue empate
+        competitionResult.isDraw = isDraw;
 
         await this.competitionResultRepository.save(competitionResult);
 
@@ -147,7 +157,7 @@ export class CompetitionsService {
 
     async getWinners(): Promise<any> {
         const results = await this.competitionResultRepository.find({
-            relations: ['competition', 'winner', 'loser'], // Cargar todas las relaciones necesarias
+            relations: ['competition', 'winner', 'loser'],
         });
 
         if (!results.length) {
@@ -157,7 +167,6 @@ export class CompetitionsService {
         return results.map((result) => {
             const { competition, winner, loser, isDraw } = result;
 
-            // Verificar si el resultado, competencia y equipos están definidos
             if (!competition || (!winner && !loser)) {
                 return {
                     competitionId: 'N/A',
@@ -166,10 +175,9 @@ export class CompetitionsService {
                 };
             }
 
-            // Si hay un empate
             if (isDraw) {
                 return {
-                    competitionId: competition?.id || 'N/A',
+                    competitionId: competition.id || 'N/A',
                     competitionName: competition?.tournament?.name || 'N/A',
                     result: 'Draw',
                     teams: [
@@ -182,9 +190,8 @@ export class CompetitionsService {
                 };
             }
 
-            // Caso normal donde hay un ganador
             return {
-                competitionId: competition?.id || 'N/A',
+                competitionId: competition.id || 'N/A',
                 competitionName: competition?.tournament?.name || 'N/A',
                 winner: {
                     id: winner?.id || 'N/A',
